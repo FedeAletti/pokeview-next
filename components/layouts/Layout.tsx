@@ -7,6 +7,8 @@ interface Props {
 	children: PropsWithChildren<React.ReactNode>
 }
 
+const origin = typeof window === "undefined" ? "" : window.location.origin
+
 export const Layout: FC<Props> = ({ children, title }) => {
 	return (
 		<>
@@ -21,6 +23,17 @@ export const Layout: FC<Props> = ({ children, title }) => {
 					name="keywords"
 					content={`${title}, pokemon, pokedex, pokémon, pokédex`}
 				/>
+
+				<meta
+					property="og:title"
+					content={`Información sobre ${title}` || "Pokemon App"}
+				/>
+				<meta
+					property="og:description"
+					content={`Esta es la página de: ${title}`}
+				/>
+
+				<meta property="og:image" content={`${origin}/img/banner.png`} />
 			</Head>
 
 			<NavBar />

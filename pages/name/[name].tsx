@@ -1,20 +1,22 @@
 import { useEffect, useState } from "react"
-import { NextPage } from "next"
+import { GetStaticProps, GetStaticPaths, NextPage } from "next"
+import { pokeApi } from "../../api"
 import { Layout } from "../../components/layouts"
-import { GetStaticProps, GetStaticPaths } from "next"
-import { Pokemon } from "../../interfaces"
+import { Pokemon, PokemonListResponse } from "../../interfaces"
 import { Button, Card, Container, Grid, Image, Text } from "@nextui-org/react"
-import localFavorites from "../../utils/localFavorites"
 import confetti from "canvas-confetti"
+import localFavorites from "../../utils/localFavorites"
 import { getPokemonInfo } from "../../utils"
 
 interface Props {
 	pokemon: Pokemon
 }
 
-const PokemonPage: NextPage<Props> = ({ pokemon }) => {
-	const [isInFavorite, setIsInFavorite] = useState<Boolean>()
-	console.log(isInFavorite)
+const PokemonByNamePage: NextPage<Props> = ({ pokemon }) => {
+	const [isInFavorite, setIsInFavorite] = useState<Boolean>(false)
+
+	console.log(pokemon)
+
 	const onToggleFavorite = () => {
 		localFavorites.toggleFavorite(pokemon.id)
 		setIsInFavorite(!isInFavorite)
@@ -106,23 +108,34 @@ const PokemonPage: NextPage<Props> = ({ pokemon }) => {
 	)
 }
 
+export default PokemonByNamePage
+
 export const getStaticPaths: GetStaticPaths = async (ctx) => {
-	const pokemons151 = [...Array(151)].map((_, i) => `${i + 1}`)
+	// const pokemons151 = [...Array(151)].map((_, i) => `${i + 1}`)
+
+	const { data } = await pokeApi.get<PokemonListResponse>(
+		`/pokemon?limit=151`,
+		{
+			headers: {
+				"accept-encoding": "*",
+			},
+		}
+	)
+
+	const pokemonNames: string[] = data.results.map((pokemon) => pokemon.name)
 
 	return {
-		paths: pokemons151.map((id) => ({ params: { id } })),
+		paths: pokemonNames.map((name) => ({ params: { name } })),
 		fallback: false,
 	}
 }
 
 export const getStaticProps: GetStaticProps = async ({ params }) => {
-	const { id } = params as { id: string }
+	const { name } = params as { name: string }
 
 	return {
 		props: {
-			pokemon: await getPokemonInfo(id),
+			pokemon: await getPokemonInfo(name),
 		},
 	}
 }
-
-export default PokemonPage
